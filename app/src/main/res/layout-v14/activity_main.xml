@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="microbit.minimove.MainActivity">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mini Move Control"
+        android:layout_column="5"
+        android:layout_row="6"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline"/>
+
+    <Button
+        android:id="@+id/connect"
+        android:layout_width="110dp"
+        android:layout_height="48dp"
+        android:layout_column="7"
+        android:layout_row="0"
+        android:text="Connect"/>
+
+    <Button
+        android:id="@+id/disconnect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_column="7"
+        android:layout_row="1"
+        android:text="Disconnect"/>
+
+    <Button
+        android:id="@+id/right"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_column="4"
+        android:layout_row="3"
+        android:background="@android:color/background_light"
+        tools:rotation="270"/>
+
+    <Button
+        android:id="@+id/down"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_column="3"
+        android:layout_row="4"
+        android:background="@android:color/background_light"
+        />
+
+    <Button
+        android:id="@+id/up"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_column="3"
+        android:layout_row="2"
+        android:background="@android:color/background_light"
+        android:elevation="5dp"
+        />
+
+    <Button
+        android:id="@+id/left"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_column="2"
+        android:layout_row="3"
+        android:background="@android:color/background_light"
+        android:rotation="270"/>
+
+</GridLayout>
