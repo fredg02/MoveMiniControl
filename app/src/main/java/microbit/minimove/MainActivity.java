@@ -25,9 +25,10 @@ public class MainActivity extends AppCompatActivity {
     private Button leftButton;
     private Button rightButton;
     private Button connectButton;
-    private Button disconnectButton;
 
     private BleConnection mBleConnection;
+
+    private boolean isConnected = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,11 +41,30 @@ public class MainActivity extends AppCompatActivity {
         leftButton = (Button) findViewById(R.id.left);
         rightButton = (Button) findViewById(R.id.right);
         connectButton = (Button) findViewById(R.id.connect);
-        disconnectButton = (Button) findViewById(R.id.disconnect);
 
         setTouchListeners();
 
         mBleConnection = new BleConnection(this);
+        mBleConnection.addListener(new ConnectionListener() {
+
+            @Override
+            public void connectionStateChanged(final BleConnection.State state) {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        if (state == BleConnection.State.CONNECTED) {
+                            isConnected = true;
+                            connectButton.setText(getText(R.string.disconnect));
+                        } else if (state == BleConnection.State.CONNECTING) {
+                            isConnected = false;
+                            connectButton.setText(getText(R.string.connecting));
+                        } else {
+                            isConnected = false;
+                            connectButton.setText(getText(R.string.connect));
+                        }
+                    }
+                });
+            }
+        });
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // Android M Permission check 
@@ -101,19 +121,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (mBleConnection != null) {
-                    mBleConnection.connect();
+                    if (isConnected) {
+                        mBleConnection.disconnect();
+                    } else {
+                        mBleConnection.connect();
+                    }
                 }
             }
         });
 
-        disconnectButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mBleConnection != null) {
-                    mBleConnection.disconnect();
-                }
-            }
-        });
     }
 
     private void handleDirectionCommand(int buttonId, MotionEvent event) {

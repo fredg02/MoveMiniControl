@@ -21,6 +21,8 @@ import android.widget.Toast;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -58,9 +60,9 @@ public class BleConnection {
     public static int MES_DPAD_BUTTON_3_DOWN = 13; // left
     public static int MES_DPAD_BUTTON_4_DOWN = 15; // right
 
-    protected enum State {IDLE, CONNECTING, CONNECTED};
-
-    protected State state = State.IDLE;
+    public enum State {IDLE, CONNECTING, CONNECTED};
+    private Set<ConnectionListener> listenerList = new HashSet<>();
+    private State state = State.IDLE;
 
     private boolean mConnected;
     private boolean mWritten;
@@ -86,11 +88,13 @@ public class BleConnection {
                 state = State.IDLE;
                 // it should actually be notifyConnectionLost, but there is
                 // no difference between a deliberate disconnect and a lost connection
+                notifyListener();
             } else {
                 Log.d(TAG, "onConnectionStateChange: else: " + newState);
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
                 mConnected = false;
                 state = State.IDLE;
+                notifyListener();
             }
         }
 
@@ -115,6 +119,7 @@ public class BleConnection {
                 mConnected = true;
                 mWritten = false;
                 state = State.CONNECTED;
+                notifyListener();
             }
         }
 
@@ -193,6 +198,8 @@ public class BleConnection {
             return;
         }
 
+        //TODO: check that location service is activated (required for scanning)
+
         mBluetoothAdapter.stopLeScan(mLeScanCallback);
         mBluetoothAdapter.startLeScan(mLeScanCallback);
 
@@ -206,11 +213,13 @@ public class BleConnection {
             public void run() {
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
                 state = State.IDLE;
-//                Toast.makeText(getApplicationContext(), "BLE connection timeout", Toast.LENGTH_LONG).show();
+                notifyListener();
+                Toast.makeText(mContext, "BLE connection timeout", Toast.LENGTH_LONG).show();
             }
         }, 5000);
 
         state = State.CONNECTING;
+        notifyListener();
     }
 
     public void disconnect() {
@@ -234,6 +243,7 @@ public class BleConnection {
                         mScanTimer = null;
                     }
                     state = State.IDLE;
+                    notifyListener();
                 }
             }
         });
@@ -280,6 +290,20 @@ public class BleConnection {
                 Log.d(TAG, "sendBlePacket: " + Utilities.getHexString(bb.array()));
                 mGatt.writeCharacteristic(mEventCharacteristic);
             }
+        }
+    }
+
+    public void addListener(ConnectionListener cscl) {
+        listenerList.add(cscl);
+    }
+
+    public void removeListener(ConnectionListener cscl) {
+        listenerList.remove(cscl);
+    }
+
+    private void notifyListener() {
+        for (ConnectionListener cscl : listenerList) {
+            cscl.connectionStateChanged(state);
         }
     }
 
