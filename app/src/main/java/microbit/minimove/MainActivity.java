@@ -20,12 +20,12 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
     private static final String TAG = "MoveMini";
-    private Button up;
-    private Button down;
-    private Button left;
-    private Button right;
-    private Button connect;
-    private Button disconnect;
+    private Button upButton;
+    private Button downButton;
+    private Button leftButton;
+    private Button rightButton;
+    private Button connectButton;
+    private Button disconnectButton;
 
     private BleConnection mBleConnection;
 
@@ -35,12 +35,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-        up = (Button) findViewById(R.id.up);
-        down = (Button) findViewById(R.id.down);
-        left = (Button) findViewById(R.id.left);
-        right = (Button) findViewById(R.id.right);
-        connect = (Button) findViewById(R.id.connect);
-        disconnect = (Button) findViewById(R.id.disconnect);
+        upButton = (Button) findViewById(R.id.up);
+        downButton = (Button) findViewById(R.id.down);
+        leftButton = (Button) findViewById(R.id.left);
+        rightButton = (Button) findViewById(R.id.right);
+        connectButton = (Button) findViewById(R.id.connect);
+        disconnectButton = (Button) findViewById(R.id.disconnect);
 
         setTouchListeners();
 
@@ -65,39 +65,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setTouchListeners() {
-        up.setOnTouchListener(new View.OnTouchListener() {
+        upButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                handleDirectionCommand("forward", event);
+                handleDirectionCommand(BleConnection.MES_DPAD_BUTTON_1_DOWN, event);
                 return true;
             }
         });
 
-        down.setOnTouchListener(new View.OnTouchListener() {
+        downButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                handleDirectionCommand("backward", event);
+                handleDirectionCommand(BleConnection.MES_DPAD_BUTTON_2_DOWN, event);
                 return true;
             }
         });
 
-        left.setOnTouchListener(new View.OnTouchListener() {
+        leftButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                handleDirectionCommand("left", event);
+                handleDirectionCommand(BleConnection.MES_DPAD_BUTTON_3_DOWN, event);
                 return true;
             }
         });
 
-        right.setOnTouchListener(new View.OnTouchListener() {
+        rightButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                handleDirectionCommand("right", event);
+                handleDirectionCommand(BleConnection.MES_DPAD_BUTTON_4_DOWN, event);
                 return true;
             }
         });
 
-        connect.setOnClickListener(new View.OnClickListener() {
+        connectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (mBleConnection != null) {
@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        disconnect.setOnClickListener(new View.OnClickListener() {
+        disconnectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (mBleConnection != null) {
@@ -116,49 +116,21 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void handleDirectionCommand(String direction, MotionEvent event) {
+    private void handleDirectionCommand(int buttonId, MotionEvent event) {
         if (mBleConnection != null && mBleConnection.isConnected()) {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
-                    if ("forward".equalsIgnoreCase(direction)) {
-                        driveForward();
-                    } else if ("backward".equalsIgnoreCase(direction)) {
-                        driveBackward();
-                    } else if ("left".equalsIgnoreCase(direction)) {
-                        turnLeft();
-                    } else if ("right".equalsIgnoreCase(direction)) {
-                        turnRight();
-                    } else {
-                        stop();
-                    }
+                    // send direction
+                    mBleConnection.sendDirectionPacket(buttonId);
                     break;
                 case MotionEvent.ACTION_UP:
-                    stop();
+                    // send stop
+                    mBleConnection.sendDirectionPacket(BleConnection.MES_DPAD_BUTTON_1_UP);
                     break;
             }
         } else {
             Toast.makeText(getApplicationContext(), "Not connected", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private void driveForward() {
-        mBleConnection.sendDirectionPacket(BleConnection.MES_DPAD_BUTTON_1_DOWN);
-    }
-
-    private void driveBackward() {
-        mBleConnection.sendDirectionPacket(BleConnection.MES_DPAD_BUTTON_2_DOWN);
-    }
-
-    private void turnLeft() {
-        mBleConnection.sendDirectionPacket(BleConnection.MES_DPAD_BUTTON_3_DOWN);
-    }
-
-    private void turnRight() {
-        mBleConnection.sendDirectionPacket(BleConnection.MES_DPAD_BUTTON_4_DOWN);
-    }
-
-    private void stop() {
-        mBleConnection.sendDirectionPacket(BleConnection.MES_DPAD_BUTTON_1_UP);
     }
 
     @Override
