@@ -6,7 +6,7 @@ Since the only(?) other app that was available on the Google Play store was/is n
 
 Some of the Bluetooth related code was borrowed from the [Crazyflie Control app](https://github.com/bitcraze/crazyflie-android-client).
 
-[[https://github.com/freg02/MoveMiniControl/blob/master/images/moveMiniControl_screenshot.png|alt=Screenshot]]
+![Screenshot](../master/images/moveMiniControl_screenshot.png)
 
 ## Features
 
