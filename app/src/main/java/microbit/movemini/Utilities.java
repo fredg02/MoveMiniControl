@@ -1,4 +1,4 @@
-package microbit.minimove;
+package microbit.movemini;
 
 /**
  * Utilities

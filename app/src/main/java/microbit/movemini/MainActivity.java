@@ -1,4 +1,4 @@
-package microbit.minimove;
+package microbit.movemini;
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
             if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("This app needs location access");
-                builder.setMessage("Please grant location access so this app can detect beacons.");
+                builder.setMessage("Please grant location access so this app can do a BLE scan.");
                 builder.setPositiveButton(android.R.string.ok, null);
                 builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setTitle("Functionality limited");
-                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons when in the background.");
+                    builder.setMessage("Since location access has not been granted, this app will not be able to discover BLE devices when in the background.");
                     builder.setPositiveButton(android.R.string.ok, null);
                     builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
                         @Override

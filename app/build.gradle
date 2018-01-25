@@ -4,7 +4,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
     defaultConfig {
-        applicationId "microbit.minimove"
+        applicationId "microbit.movemini"
         minSdkVersion 13
         targetSdkVersion 25
         versionCode 1
