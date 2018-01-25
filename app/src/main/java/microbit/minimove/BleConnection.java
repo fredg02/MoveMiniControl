@@ -2,6 +2,7 @@ package microbit.minimove;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -12,9 +13,12 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.widget.Toast;
@@ -86,8 +90,6 @@ public class BleConnection {
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
                 mConnected = false;
                 state = State.IDLE;
-                // it should actually be notifyConnectionLost, but there is
-                // no difference between a deliberate disconnect and a lost connection
                 notifyListener();
             } else {
                 Log.d(TAG, "onConnectionStateChange: else: " + newState);
@@ -198,7 +200,9 @@ public class BleConnection {
             return;
         }
 
-        //TODO: check that location service is activated (required for scanning)
+        if (!checkLocationSettings()) {
+            return;
+        }
 
         mBluetoothAdapter.stopLeScan(mLeScanCallback);
         mBluetoothAdapter.startLeScan(mLeScanCallback);
@@ -214,12 +218,43 @@ public class BleConnection {
                 mBluetoothAdapter.stopLeScan(mLeScanCallback);
                 state = State.IDLE;
                 notifyListener();
-                Toast.makeText(mContext, "BLE connection timeout", Toast.LENGTH_LONG).show();
+                mContext.runOnUiThread(new Runnable() {
+                    public void run() {
+                        Toast.makeText(mContext, "BLE connection timeout", Toast.LENGTH_LONG).show();
+                    }
+                });
             }
-        }, 5000);
+        }, 10000);
 
         state = State.CONNECTING;
         notifyListener();
+    }
+
+    /**
+     * Check that location service is activated (required for BLE scanning)
+     */
+    private boolean checkLocationSettings() {
+        final LocationManager manager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
+
+        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            Log.d(TAG, "Location is disabled.");
+            final AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            builder.setMessage("Location seems to be disabled, do you want to enable it?").setCancelable(false)
+                   .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(final DialogInterface dialog, final int id) {
+                            mContext.startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                        }
+                    })
+                   .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        public void onClick(final DialogInterface dialog, final int id) {
+                            dialog.cancel();
+                        }
+                    });
+            final AlertDialog alert = builder.create();
+            alert.show();
+            return false;
+        }
+        return true;
     }
 
     public void disconnect() {
@@ -271,23 +306,15 @@ public class BleConnection {
             this.value = value;
         }
 
-
         public void run() {
-//            Log.d(TAG, "sendBlePacket run(): " + mConnected + " " + mWritten);
-//            if(mConnected && mWritten) {
             if(mConnected) {
-                if (mWriteWithAnswer) {
-                    mEventCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
-                    mWritten = false;
-                } else {
-                    mEventCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
-                    mWritten = true;
-                }
+                // create Event message
+                mEventCharacteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
                 ByteBuffer bb = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
                 bb.putShort((short) eventCode);
                 bb.putShort((short) value);
                 mEventCharacteristic.setValue(bb.array());
-                Log.d(TAG, "sendBlePacket: " + Utilities.getHexString(bb.array()));
+//                Log.d(TAG, "sendBlePacket: " + Utilities.getHexString(bb.array()));
                 mGatt.writeCharacteristic(mEventCharacteristic);
             }
         }
